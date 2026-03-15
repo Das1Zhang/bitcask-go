@@ -7,4 +7,15 @@ type Options struct {
 	DataFileSize int64
 	// 每次写入数据之后是否要进行持久化
 	SyncWrites bool
+	// 索引类型
+	IndexType IndexerType
 }
+
+type IndexerType = int8
+
+const (
+	// BTree 索引
+	Btree IndexerType = iota + 1
+	// ART Adaptive Radix Tree 自适应基数树索引
+	ART
+)

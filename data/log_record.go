@@ -21,7 +21,7 @@ type LogRecordPos struct {
 	Offset int64  // 偏移，数据在文件中的位置
 }
 
-// EncodeLogRecord 对 LogRecord 进行编码，返回字节数组和长度
+// EncodeLogRecord  zed对 LogRecord 进行编码，返回字节数组和长度
 func EncodeLogRecord(logRecord *LogRecord) ([]byte, int64) {
 	return nil, 0
 }
