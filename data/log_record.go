@@ -10,6 +10,7 @@ type LogRecordType = byte
 const (
 	LogRecordNormal LogRecordType = iota
 	LogRecordDeleted
+	LogRecordTxnFinished
 )
 
 // 写入到数据文件的记录
@@ -28,6 +29,13 @@ const maxLogRecordHeaderSize = binary.MaxVarintLen32*2 + 5
 type LogRecordPos struct {
 	Fid    uint32 // 文件id
 	Offset int64  // 偏移，数据在文件中的位置
+	Size   uint32 // 标识数据在磁盘位置上的大小
+}
+
+// TransactionRecord 暂存的事务相关的数据
+type TransactionRecord struct {
+	Record *LogRecord
+	Pos    *LogRecordPos
 }
 
 // LogRecord 的头部信息
@@ -69,6 +77,32 @@ func EncodeLogRecord(logRecord *LogRecord) ([]byte, int64) {
 	binary.LittleEndian.PutUint32(encBytes[:4], crc)
 
 	return encBytes, int64(size)
+}
+
+// 对位置信息进行编码
+func EncodeLogRecordPos(pos *LogRecordPos) []byte {
+	buf := make([]byte, binary.MaxVarintLen32*2+binary.MaxVarintLen64)
+	var index = 0
+	index += binary.PutVarint(buf[index:], int64(pos.Fid))
+	index += binary.PutVarint(buf[index:], pos.Offset)
+	index += binary.PutVarint(buf[index:], int64(pos.Size))
+	return buf[:index]
+}
+
+// DecodeLogRecordPos 解码 LogRecordPos
+func DecodeLogRecordPos(buf []byte) *LogRecordPos {
+	var index = 0
+	fileId, n := binary.Varint(buf[index:])
+	index += n
+	offset, n := binary.Varint(buf[index:])
+	index += n
+	size, _ := binary.Varint(buf[index:])
+
+	return &LogRecordPos{
+		Fid:    uint32(fileId),
+		Offset: offset,
+		Size:   uint32(size),
+	}
 }
 
 // 对字节数组中的 Header 进行解码得到 LogRecordHeader
