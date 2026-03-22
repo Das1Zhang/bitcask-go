@@ -311,6 +311,7 @@ func (db *DB) ListKeys() [][]byte {
 	var idx int
 	for iterator.Rewind(); iterator.Valid(); iterator.Next() {
 		keys[idx] = iterator.Key()
+		idx++
 	}
 	return keys
 }
